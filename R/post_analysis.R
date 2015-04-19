@@ -6,13 +6,13 @@ cluster_GO <- function(
     # if the result provided does not contain the slots required for this
     # function
     if (! all(c("factor","GO") %in% names(result))){
-        stop("\"result=\" argument misses required slots.
+        stop("'result=' argument misses required slots.
     Is it a GO_analyse() output?")
     }
     # If the GO identifier is not present in the results
     if (! go_id %in% result$GO$go_id){
         # Return an error and stop
-        stop("\"go_id=\" argument is not a valid factor in pData(eSet).")
+        stop(go_id, " was not found in result$mapping$go_id.")
     }
     # Subset the data to the given values of the given factors, if existing
     if (!is.null(subset)){
@@ -58,8 +58,13 @@ expression_plot <- function(
     # if the feature identifier is absent from the dataset
     if (!gene_id %in% rownames(eSet)){
         # suggest close matches if any
-        matches <- agrep(pattern=gene_id, x=rownames(eSet),
-                        max.distance=1, fixed=TRUE, value=TRUE)
+        matches <- agrep(
+            pattern=gene_id,
+            x=rownames(eSet),
+            max.distance=1,
+            fixed=TRUE,
+            value=TRUE
+            )
         if (length(matches) > 0){
             cat(gene_id, "not found in dataset. Did you mean:", fill=TRUE)
             return(matches)
@@ -71,43 +76,51 @@ expression_plot <- function(
     # if the result provided does not contain the slots required for this
     # function
     if (! all(c("factor","genes") %in% names(result))){
-        stop("\"result=\" argument misses required slots.
+        stop("'result=' argument misses required slots.
     Is it a GO_analyse() output?")
     }
     # If the X variable requested does not exist in the sample annotations
     if (! x_var %in% colnames(pData(eSet))){
         # Return an error and stop
-        stop("\"x_var=\" argument is not a valid factor in pData(eSet).")
+        stop("x_var: ", x_var, " is not an existing column in pData(eSet).")
     }
     # If the factor requested does not exist in the sample annotations
     if (! f %in% colnames(pData(eSet))){
         # Return an error and stop
-        stop("\"f=\" argument is not a valid factor in pData(eSet).")
+        stop("f: ", f, " is not an existing column in pData(eSet).")
     }
     # Subset the data to the given values of the given factors, if existing
     if (!is.null(subset)){
         eSet <- subEset(eSet=eSet, subset=subset)
     }
     # Build the title message from the combination of gene_id and gene_symbol
-    title <- paste(gene_id, " = ", result$genes[gene_id, "external_gene_name"])
+    title <- paste(
+        gene_id,
+        " = ",
+        result$genes[gene_id, "external_gene_name"]
+        )
     # Assemble a data frame containing the necessary information for ggplot
-    df <- data.frame(Expression=exprs(eSet)[gene_id,],
-                    Factor=pData(eSet)[,f],
-                    X=pData(eSet)[,x_var])
+    df <- data.frame(
+        Expression=exprs(eSet)[gene_id,],
+        Factor=pData(eSet)[,f],
+        X=pData(eSet)[,x_var]
+        )
     # Generate the plot
     gg <- ggplot(df) +
-        geom_smooth(aes(x=X, y=Expression, group=Factor,
-                                color=Factor, fill=Factor), level=level) +
+        geom_smooth(
+            aes(x=X, y=Expression, group=Factor, color=Factor, fill=Factor),
+            level=level
+            ) +
         labs(title=title, x=xlab, y=ylab) +
         theme(
-            plot.title=element_text(
-                            size=rel(title.size)),
+            plot.title=element_text(size=rel(title.size)),
             axis.title=element_text(size=axis.title.size),
             axis.text=element_text(size=axis.text.size),
             axis.text.x=element_text(angle=axis.text.angle),
             legend.text=element_text(size=legend.text.size),
             legend.title=element_text(size=legend.title.size),
-            legend.key.size=unit(legend.key.size, "points")) +
+            legend.key.size=unit(legend.key.size, "points")
+            ) +
         scale_colour_manual(values=col, name=f) + 
         scale_fill_manual(values=col, name=f)
     # If a non-default ylim was given, apply it
@@ -129,17 +142,17 @@ expression_plot_symbol <- function(
     # if the result provided does not contain the slots required for this
     # function
     if (! all(c("factor","genes") %in% names(result))){
-        stop("\"result=\" argument misses required slots.
+        stop("'result=' argument misses required slots.
     Is it a GO_analyse() output?")
     }
     # 
     # If the X variable requested does not exist in the sample annotations
     if (! x_var %in% colnames(pData(eSet))){
-        stop("\"x_var=\" argument is not a valid factor in pData(eSet).")
+        stop("x_var: ", x_var, " is not an existing column in pData(eSet).")
     }
     # If the factor requested does not exist in the sample annotations
     if (! f %in% colnames(pData(eSet))){
-        stop("\"f=\" argument is not a valid factor in pData(eSet).")
+        stop("f: ", f, " is not an existing column in pData(eSet).")
     }
     # Subset the data to the given values of the given factors, if existing
     if (!is.null(subset)){
@@ -148,16 +161,23 @@ expression_plot_symbol <- function(
     # the GO_analyse result provided contains the annotation of each feature
     # identifier
     # present in the dataset to a gene name, if any
-    cat("Fetching feature identifier(s) annotated to", gene_symbol, "...",
-        fill=TRUE)
-    mapping <- data.frame(gene_id=rownames(result$genes), 
-                        external_gene_name=result$genes$external_gene_name,
-                        stringsAsFactors=FALSE)
+    cat(
+        "Fetching feature identifier(s) annotated to", gene_symbol, "...",
+        fill=TRUE
+        )
+    mapping <- data.frame(
+        gene_id=rownames(result$genes), 
+        external_gene_name=result$genes$external_gene_name,
+        stringsAsFactors=FALSE
+        )
     # if the gene name is absent from the mapping table
     if(!gene_symbol %in% mapping$external_gene_name){
         # suggest close matches if any
-        matches <- agrep(pattern=gene_symbol, x=mapping$external_gene_name,
-                        fixed=TRUE, value=TRUE)
+        matches <- agrep(
+            pattern=gene_symbol,
+            x=mapping$external_gene_name,
+            fixed=TRUE, value=TRUE
+            )
         # if we do have one or more close matches to the symbol
         if (length(matches) > 0){
             # list them to the user for help and stop the function
@@ -167,8 +187,12 @@ expression_plot_symbol <- function(
         # if we don't have close matches in the dataset, tell the user and
         # stop the function
         else{
-            stop(paste(gene_symbol,
-                        "not found in dataset. No close match either."))
+            stop(
+                paste(
+                    gene_symbol,
+                    "not found in dataset. No close match either."
+                    )
+                )
         }
     }
     # At this stage we know the gene symbol has at least one corresponding
@@ -181,9 +205,11 @@ expression_plot_symbol <- function(
     gene_ids_present <- gene_ids[gene_ids %in% rownames(eSet)]
     # If none of the feature identifiers are present in the dataset
     if (length(gene_ids_present) == 0){
-        cat("Feature identifiers were found for", gene_symbol, "\n",
+        cat(
+            "Feature identifiers were found for", gene_symbol, "\n",
             "but none of them were found in the expression dataset.\n",
-            "Feature identifiers were:")
+            "Feature identifiers were:"
+            )
         return(gene_ids)
     }
     # At this stage we are finally sure that at least one of the feature
@@ -202,9 +228,11 @@ expression_plot_symbol <- function(
         # if the number of titles does not match the number of plots
         if(length(titles) != length(gene_ids_present)){
             # return an error and stop
-            stop("The number of titles (", length(titles),
-                    ") does not match the number of plots (",
-                    length(gene_ids_present), ").")
+            stop(
+                "The number of titles (", length(titles),
+                ") does not match the number of plots (",
+                length(gene_ids_present), ")."
+                )
         }
     }
     # If there are strictly more than 1 gene id associated with the gene
@@ -218,8 +246,10 @@ expression_plot_symbol <- function(
         # the function will plot all Ensembl ids in a lattice
         if (index==0){
             # A first time user might not know that how to plot a single plot
-            cat("Use argument \"index=1\" to plot the first gene id alone,",
-                "and so on.", fill=TRUE)
+            cat(
+                "Use argument 'index=1' to plot the first gene id alone,",
+                "and so on.", fill=TRUE
+                )
             # Prepare a grid to plot multiple graphs while optimising the
             # number of columns and rows
             columns <- ceiling(sqrt(length(gene_ids_present)))
@@ -238,11 +268,13 @@ expression_plot_symbol <- function(
                     axis.text.angle=axis.text.angle,
                     legend.text.size=legend.text.size,
                     legend.title.size=legend.title.size,
-                    legend.key.size=legend.key.size)
+                    legend.key.size=legend.key.size
+                    )
             }
             # Plot all the graphs in the optimised lattice, using the
             # feature-based plotting function
             multiplot(plotlist=plots, cols=columns)
+            return(gene_ids_present)
         }
         # If the user gave a non-zero index
         else{
@@ -267,7 +299,8 @@ expression_plot_symbol <- function(
                     axis.text.angle=axis.text.angle,
                     legend.text.size=legend.text.size,
                     legend.title.size=legend.title.size,
-                    legend.key.size=legend.key.size)
+                    legend.key.size=legend.key.size
+                    )
             }
         }
     }
@@ -285,7 +318,8 @@ expression_plot_symbol <- function(
             axis.text.angle=axis.text.angle,
             legend.text.size=legend.text.size,
             legend.title.size=legend.title.size,
-            legend.key.size=legend.key.size)
+            legend.key.size=legend.key.size
+            )
     }
 }
 
@@ -294,8 +328,9 @@ expression_profiles <- function(
     colourF=result$factor, linetypeF=colourF, line.size=1.5,
     xlab=x_var, ylab="log2(cpm)", ylim=range(exprs(eSet)),
     col.palette="Accent",
-    col=brewer.pal(n=length(levels(pData(eSet)[,colourF])),
-                    name=col.palette),
+    col=brewer.pal(
+        n=length(levels(pData(eSet)[,colourF])),
+        name=col.palette),
     lty=1:length(levels(pData(eSet)[,linetypeF])),
     title=NULL, title.size=2, axis.title.size=20,
     axis.text.size=15, axis.text.angle=0,
@@ -304,8 +339,10 @@ expression_profiles <- function(
     # if the feature identifier is absent from the dataset
     if (!gene_id %in% rownames(eSet)){
         # suggest close matches if any
-        matches <- agrep(pattern=gene_id, x=rownames(eSet),
-                            max.distance=1, fixed=TRUE, value=TRUE)
+        matches <- agrep(
+            pattern=gene_id, x=rownames(eSet), max.distance=1,
+            fixed=TRUE, value=TRUE
+            )
         if (length(matches) > 0){
             cat(gene_id, "not found in dataset. Did you mean:", fill=TRUE)
             return(matches)
@@ -317,59 +354,80 @@ expression_profiles <- function(
     # if the result provided does not contain the slots required for this
     # function
     if (! all(c("factor","genes") %in% names(result))){
-        stop("\"result=\" argument misses required slots.
+        stop("'result=' argument misses required slots.
     Is it a GO_analyse() output?")
     }
     # If the X variable requested does not exist in the sample annotations
     if (! x_var %in% colnames(pData(eSet))){
         # Return an error and stop
-        stop("\"x_var=\" argument is not a valid factor in pData(eSet).")
+        stop("x_var: ", x_var, " is not an existing column in pData(eSet).")
     }
     # If the series factor requested does not exist in the sample
     # annotations
     if (! seriesF %in% colnames(pData(eSet))){
         # Return an error and stop
-        stop("\"seriesF=\" argument is not a valid factor in pData(eSet).")
+        stop(
+            "seriesF: ", seriesF,
+            " is not an existing column in pData(eSet)."
+            )
     }
     # If the colour factor requested does not exist in the sample
     # annotations
     if (! colourF %in% colnames(pData(eSet))){
         # Return an error and stop
-        stop("\"colourF=\" argument is not a valid factor in pData(eSet).")
+        stop(
+            "colourF: ", colourF,
+            " is not an existing column in pData(eSet)."
+            )
     }
     # If the linetype factor requested does not exist in the sample
     # annotations
     if (! linetypeF %in% colnames(pData(eSet))){
         # Return an error and stop
-        stop("\"linetypeF=\" argument is not a valid factor in pData(eSet).")
+        stop(
+            "linetypeF: ", linetypeF,
+            " is not an existing column in pData(eSet)."
+            )
     }
     # Subset the data to the given values of the given factors, if existing
     if (!is.null(subset)){
         eSet <- subEset(eSet=eSet, subset=subset)
     }
     # Build the title message from the combination of gene_id and gene_symbol
-    title <- paste(gene_id, " = ", result$genes[gene_id, "external_gene_name"])
+    title <- paste(
+        gene_id,
+        " = ",
+        result$genes[gene_id, "external_gene_name"]
+        )
     # Assemble a data frame containing the necessary information for ggplot
-    df <- data.frame(Expression=exprs(eSet)[gene_id,],
-                    X=pData(eSet)[,x_var],
-                    Profile=pData(eSet)[,seriesF],
-                    LineType=pData(eSet)[,linetypeF],
-                    Colour=pData(eSet)[,colourF])
+    df <- data.frame(
+        Expression=exprs(eSet)[gene_id,],
+        X=pData(eSet)[,x_var],
+        Profile=pData(eSet)[,seriesF],
+        LineType=pData(eSet)[,linetypeF],
+        Colour=pData(eSet)[,colourF]
+        )
     # Generate the plot
     gg <- ggplot(data=df) +
-        geom_line(aes(x=X, y=Expression, group=Profile, linetype=LineType,
-                    colour=Colour), size=line.size) +
+        geom_line(
+            aes(x=X,
+                y=Expression,
+                group=Profile,
+                linetype=LineType,
+                colour=Colour
+                ),
+            size=line.size) +
         labs(title=title, x=xlab, y=ylab) +
         theme(
-            plot.title=element_text(
-                size=rel(title.size)),
+            plot.title=element_text(size=rel(title.size)),
             axis.title=element_text(size=axis.title.size),
             axis.text=element_text(size=axis.text.size),
             axis.text.x=element_text(angle=axis.text.angle),
             legend.text=element_text(size=legend.text.size), 
             legend.title=element_text(size=legend.title.size),
             plot.title=element_text(size=rel(2)),
-            legend.key.size=unit(legend.key.size, "points")) +
+            legend.key.size=unit(legend.key.size, "points")
+            ) +
         scale_colour_manual(values=col, name=colourF) + 
         scale_linetype_manual(values=lty, name=linetypeF)
     # If a non-default ylim was given, apply it
@@ -385,8 +443,8 @@ expression_profiles_symbol <- function(
     colourF=result$factor, linetypeF=colourF, line.size=1.5,
     index=0, xlab=x_var, ylab="log2(cpm)", ylim=range(exprs(eSet)),
     col.palette="Accent",
-    col=brewer.pal(n=length(levels(pData(eSet)[,colourF])),
-                    name=col.palette),
+    col=brewer.pal(
+        n=length(levels(pData(eSet)[,colourF])), name=col.palette),
     lty=1:length(levels(pData(eSet)[,linetypeF])),
     titles=c(), title.size=2, axis.title.size=20,
     axis.text.size=15, axis.text.angle=0,
@@ -395,30 +453,39 @@ expression_profiles_symbol <- function(
     # if the result provided does not contain the slots required for this
     # function
     if (! all(c("factor","genes") %in% names(result))){
-        stop("\"result=\" argument misses required slots.
+        stop("'result=' argument misses required slots.
     Is it a GO_analyse() output?")
     }
     # If the X variable requested does not exist in the sample annotations
     if (! x_var %in% colnames(pData(eSet))){
-        stop("\"x_var=\" argument is not a valid factor in pData(eSet).")
+        stop("x_var: ", x_var, " is not an existing column in pData(eSet).")
     }
     # If the series factor requested does not exist in the sample
     # annotations
     if (! seriesF %in% colnames(pData(eSet))){
         # Return an error and stop
-        stop("\"seriesF=\" argument is not a valid factor in pData(eSet).")
+        stop(
+            "seriesF: ", seriesF,
+            " is not an existing column in pData(eSet)."
+            )
     }
     # If the colour factor requested does not exist in the sample
     # annotations
     if (! colourF %in% colnames(pData(eSet))){
         # Return an error and stop
-        stop("\"colourF=\" argument is not a valid factor in pData(eSet).")
+        stop(
+            "colourF: ", colourF,
+            " is not an existing column in pData(eSet)."
+            )
     }
     # If the linetype factor requested does not exist in the sample
     # annotations
     if (! linetypeF %in% colnames(pData(eSet))){
         # Return an error and stop
-        stop("\"linetypeF=\" argument is not a valid factor in pData(eSet).")
+        stop(
+            "linetypeF: ", linetypeF,
+            " is not an existing column in pData(eSet)."
+            )
     }
     # Subset the data to the given values of the given factors, if existing
     if (!is.null(subset)){
@@ -426,16 +493,21 @@ expression_profiles_symbol <- function(
     }
     # the GO_analyse result provided contains the annotation of each feature
     # identifier present in the dataset to a gene name, if any
-    cat("Fetching feature identifier(s) annotated to", gene_symbol, "...",
-        fill=TRUE)
-    mapping <- data.frame(gene_id=rownames(result$genes), 
-                            external_gene_name=result$genes$external_gene_name,
-                            stringsAsFactors=FALSE)
+    cat(
+        "Fetching feature identifier(s) annotated to", gene_symbol, "...",
+        fill=TRUE
+        )
+    mapping <- data.frame(
+        gene_id=rownames(result$genes),
+        external_gene_name=result$genes$external_gene_name,
+        stringsAsFactors=FALSE
+        )
     # if the gene name is absent from the mapping table
     if(!gene_symbol %in% mapping$external_gene_name){
         # suggest close matches if any
-        matches <- agrep(pattern=gene_symbol, x=mapping$external_gene_name,
-                            fixed=TRUE, value=TRUE)
+        matches <- agrep(
+            pattern=gene_symbol, x=mapping$external_gene_name,
+            fixed=TRUE, value=TRUE)
         # if we do have one or more close matches to the symbol
         if (length(matches) > 0){
             # list them to the user for help and stop the function
@@ -445,8 +517,12 @@ expression_profiles_symbol <- function(
         # if we don't have close matches in the dataset, tell the user and
         # stop the function
         else{
-            stop(paste(gene_symbol,
-                        "not found in dataset. No close match either."))
+            stop(
+                paste(
+                    gene_symbol,
+                    "not found in dataset. No close match either."
+                    )
+                )
         }
     }
     # At this stage we know the gene symbol has at least one corresponding
@@ -459,10 +535,14 @@ expression_profiles_symbol <- function(
     gene_ids_present <- gene_ids[gene_ids %in% rownames(eSet)]
     # If none of the feature identifiers are present in the dataset
     if (length(gene_ids_present) == 0){
-        cat("Feature identifiers were found for", gene_symbol, "\n",
+        cat(
+            "Feature identifiers were found for", gene_symbol, "\n",
             "but none of them were found in the expression dataset.\n",
-            "Feature identifiers were:")
-        return(gene_ids)
+            "Feature identifiers were:"
+            )
+        print(gene_ids)
+        # return the number of plots printed
+        return(0)
     }
     # At this stage we are finally sure that at least one of the feature
     # identifiers corresponding to the gene name are also present in the
@@ -480,9 +560,11 @@ expression_profiles_symbol <- function(
         # if the number of titles does not match the number of plots
         if(length(titles) != length(gene_ids_present)){
             # return an error and stop
-            stop("The number of titles (", length(titles),
-                    ") does not match the number of plots (",
-                    length(gene_ids_present), ").")
+            stop(
+                "The number of titles (", length(titles),
+                ") does not match the number of plots (",
+                length(gene_ids_present), ")."
+                )
         }
     }
     # If there are strictly more than 1 gene id associated with the gene
@@ -496,8 +578,10 @@ expression_profiles_symbol <- function(
         # the function will plot all Ensembl ids in a lattice
         if (index==0){
             # A first time user might not know that how to plot a single plot
-            cat("Use argument \"index=1\" to plot the first gene id alone,",
-                "and so on.", fill=TRUE)
+            cat(
+                "Use argument 'index=1' to plot the first gene id alone,",
+                "and so on.", fill=TRUE
+                )
             # Prepare a grid to plot multiple graphs while optimising the
             # number of columns and rows
             columns <- ceiling(sqrt(length(gene_ids_present)))
@@ -517,11 +601,13 @@ expression_profiles_symbol <- function(
                     axis.text.angle=axis.text.angle,
                     legend.title.size=legend.title.size,
                     legend.text.size=legend.text.size,
-                    legend.key.size=legend.key.size)
+                    legend.key.size=legend.key.size
+                    )
             }
             # Plot all the graphs in the optimised lattice, using the
             # feature-based plotting function
             multiplot(plotlist=plots, cols=columns)
+            return(gene_ids_present)
         }
         # If the user gave a non-zero index
         else{
@@ -547,7 +633,8 @@ expression_profiles_symbol <- function(
                     axis.text.angle=axis.text.angle,
                     legend.title.size=legend.title.size,
                     legend.text.size=legend.text.size,
-                    legend.key.size=legend.key.size)
+                    legend.key.size=legend.key.size
+                    )
             }
         }
     }
@@ -567,58 +654,89 @@ expression_profiles_symbol <- function(
             axis.text.angle=axis.text.angle,
             legend.title.size=legend.title.size,
             legend.text.size=legend.text.size,
-            legend.key.size=legend.key.size)
+            legend.key.size=legend.key.size
+            )
     }
 }
 
 heatmap_GO <- function(
     go_id, result, eSet, f=result$factor, subset=NULL, gene_names=TRUE,
+    NA.names=FALSE, margins=c(7 ,5),
     scale="none", cexCol=1.2, cexRow=0.5, 
+    labRow=NULL,
     cex.main=1, trace="none", expr.col=bluered(75), 
     row.col.palette="Accent",
     row.col=c(),
-    main=paste(go_id, result$GO[result$GO$go_id == go_id,
-                                "name_1006"]),
+    main=paste(
+        go_id, result$GO[result$GO$go_id == go_id,"name_1006"]
+        ),
     main.Lsplit=NULL,
     ...){
     # if the result provided does not contain the slots required for this
     # function
     if (! all(c("factor","GO","genes") %in% names(result))){
-        stop("\"result=\" argument misses required slots.
+        stop("'result=' argument misses required slots.
     Is it a GO_analyse() output?")
     }
     # If the GO identifier is not present in the results
     if (! go_id %in% result$GO$go_id){
         # Return an error and stop
-        stop("\"go_id=\" argument is not a valid factor in pData(eSet).")
+        stop("go_id: ", go_id, " was not found in result$mapping$go_id.")
     }
-    
     # Subset the data to the given values of the given factors, if existing
     if (!is.null(subset)){
         eSet <- subEset(eSet=eSet, subset=subset)
     }
     # Also update the RowSideColors of the heatmap.2 to a shorter vector
-    # becaue the number of samples has been reduced
+    # because the number of samples has been reduced
     # NOTE: if the user wants to provide his own color array he should
     # either give the exact number of colors as he expects in the
     # subsetted ExpressionSet, or rather use the row.col.palette 
     # argument to provide the palette, rather than the array of colors
     if (length(row.col) != ncol(eSet)){
-        row.col <- brewer.pal(n = length(unique(pData(eSet)[,f])),
-                                name = row.col.palette)
+        row.col <- brewer.pal(
+            n = length(unique(pData(eSet)[,f])),
+            name = row.col.palette
+            )
     }
     # Fetch the list of genes associated with the go_id
     gene_ids <- list_genes(go_id=go_id, result=result, data.only=TRUE)
     # Fetch and format the expression data for those genes
     genes_expr <- t(exprs(eSet)[gene_ids,])
-    # Rows are samples, label them according to the user's choson factor
-    sample_labels <- pData(eSet)[,f]
+    # Rows are samples, if the user didn't provide custom labels
+    if (is.null(labRow)){
+        # label them according to the user's choson factor
+        labRow <- pData(eSet)[,f]
+    }
+    else{
+        # If the user provided row labels, they have to match the number of
+        # sample
+        # except if length is 1, then assume it is a factor from phenoData
+        if (length(labRow) == 1){
+            labRow = pData(eSet)[,labRow]
+        }
+        else if (length(labRow) != ncol(eSet)){
+            stop(
+                "The number of custom row labels provided (",
+                length(labRow),
+                ") does not match the number of samples (",
+                ncol(eSet), ".")
+        }
+    }
     # Columns are features, label them by identifier or name
     if (gene_names){
         gene_labels <- result$genes[gene_ids, "external_gene_name"]
+        # Default: if sopme feature identifiers have no associated gene name
+        # fill the blanks with the feature identifier
+        if (any(gene_labels == '') & !NA.names){
+            gene_labels[gene_labels == ''] <- gene_ids[gene_labels == '']
+            margins=c(13,5)
+        }
+        # if the user prefers to leave blank gene names, do nothing
     }
     else{
         gene_labels <- gene_ids
+        margins=c(13,5)
     }
     # If requested, split the main title to lines with fewer than a given
     # count of characters, while respecting space-separated words
@@ -639,19 +757,23 @@ heatmap_GO <- function(
     # Change the font size of the title
     par(cex.main=cex.main)
     # Plot the heatmap of the data
-    heatmap.2(genes_expr, labRow=sample_labels, labCol=gene_labels,
-                scale=scale, cexCol=cexCol, cexRow=cexRow, main=main,
-                trace=trace, RowSideColors=samples.col, col=expr.col, ...)
+    heatmap.2(
+        genes_expr, labRow=labRow, labCol=gene_labels,
+        scale=scale, cexCol=cexCol, cexRow=cexRow, main=main,
+        trace=trace, RowSideColors=samples.col, col=expr.col,
+        margins = margins, ...)
 }
 
 hist_scores <- function(
     result,
-    main=paste("Distribution of average scores in",
-                deparse(substitute(result))), xlab="Average score", ...){
+    main=paste(
+        "Distribution of average scores in",
+        deparse(substitute(result))), xlab="Average score",
+    ...){
     # if the result provided does not contain the slots required for this
     # function
     if (! all(c("GO") %in% names(result))){
-        stop("\"result=\" argument misses required slots.
+        stop("'result=' argument misses required slots.
     Is it a GO_analyse() output?")
     }
     hist(result$GO$ave_score, main=main, xlab=xlab, ...)
@@ -661,13 +783,13 @@ list_genes <- function(go_id, result, data.only=TRUE){
     # if the result provided does not contain the slots required for this
     # function
     if (! all(c("mapping","genes") %in% names(result))){
-        stop("\"result=\" argument misses required slots.
+        stop("'result=' argument misses required slots.
     Is it a GO_analyse() output?")
     }
     # If the go_id requested is not present in the dataset
     if (!go_id %in% result$mapping$go_id){
         # return an error and stop
-        stop(go_id, "is not a valid go_id in the dataset.")
+        stop("go_id: ", go_id, " was not found in result$mapping$go_id.")
     }
     # List of gene_ids annotated to the GO term
     gene_ids <- result$mapping[result$mapping$go_id == go_id,"gene_id"]
@@ -685,12 +807,12 @@ overlap_GO <- function(go_ids, result, filename=NULL, mar=rep(0.1, 4), ...){
     # if the result provided does not contain the slots required for this
     # function
     if (! all(c("GO") %in% names(result))){
-        stop("\"result=\" argument misses required slots.
+        stop("'result=' argument misses required slots.
     Is it a GO_analyse() output?")
     }
     # Check that all GO terms are present in the result variable
     if (!all(go_ids %in% result$GO$go_id)){
-        stop("Some go_id(s) are absent from the result variable.")
+        stop("Some go_id(s) do not exist in result$GO$go_id.")
     }
     # Check that 2-5 GO terms are given, otherwise venn.diagram would crash
     if (length(go_ids) > 5){
@@ -705,8 +827,9 @@ overlap_GO <- function(go_ids, result, filename=NULL, mar=rep(0.1, 4), ...){
         gene_sets[[index]] <- list_genes(go_id=go_ids[[index]], result=result)
     }
     # generate the venn diagram (potentially to a file)
-    venn <- venn.diagram(x=gene_sets, filename=filename,
-                            category.names=go_ids, mar=mar, ...)
+    venn <- venn.diagram(
+        x=gene_sets, filename=filename, category.names=go_ids, mar=mar,
+        ...)
     # If no filename was given
     if (is.null(filename)){
         # Erases the current window if any
@@ -722,13 +845,13 @@ plot_design <- function(
     # if the result provided does not contain the slots required for this
     # function
     if (! all(c("GO") %in% names(result))){
-        stop("\"result=\" argument misses required slots.
+        stop("'result=' argument misses required slots.
     Is it a GO_analyse() output?")
     }
     # If the GO identifier is not present in the results
     if (! go_id %in% result$GO$go_id){
         # Return an error and stop
-        stop("\"go_id=\" argument is not a valid factor in pData(eSet).")
+        stop("go_id: ", go_id, " was not found in result$GO$go_id.")
     }
     # if the user changed the default value
     # check that all given factors exist in colnames(eSet)
@@ -737,19 +860,22 @@ plot_design <- function(
             if (!f %in% colnames(pData(eSet))){
                 # Otherwise, stop and return which of them is not a valid
                 # factor name
-                stop(f, " is not a valid factor name in colnames(eSet).")
+                stop(f, " is not an existing column in pData(eSet).")
             }
         } 
     }
     # Fetch the list of genes associated with the go_id
     # If the user gave the output of a GO_analyse command as result=
     # that list contains the mapping between feature and GO_id
-    gene_ids_present <- list_genes(go_id=go_id, result=result,
-                                    data.only=TRUE)
+    gene_ids_present <- list_genes(
+        go_id=go_id, result=result, data.only=TRUE
+        )
     GO_name <- result$GO[result$GO$go_id == go_id, "name_1006"]
     # Prepare a temporary data frame plot.design-friendly
-    df <- data.frame(t(exprs(eSet)[gene_ids_present,]),
-                        pData(eSet)[,factors])
+    df <- data.frame(
+        t(exprs(eSet)[gene_ids_present,]),
+        pData(eSet)[,factors]
+        )
     # If no custom title was given
     if (main == ""){
         # Generate a smart one (careful: the same title will be used for all
@@ -772,12 +898,149 @@ plot_design <- function(
     plot.design(df, main=main, ...)
 }
 
-quantiles_scores <- function(result, probs=c(0.9, 0.95, 0.99, 0.999, 0.9999),
-                            quartiles=FALSE){
+pValue_GO = function(
+    result, N=1000, ranked.by=result$rank.by, rank.by='P',
+    FUN.GO=result$FUN.GO)
+    {
+    if(length(ranked.by) != 1){
+        stop('Invalid ranked.by argument. Choose one ranking mathod.')
+    }
+    if(length(rank.by) != 1){
+        stop('Invalid rank.by argument. Choose one ranking mathod.')
+    }
+    if (! ranked.by %in% c('Rank','Score','rank','score')){
+        stop('Invalid ranked.by argument. See man page for details.')
+    }
+    if (ranked.by == 'rank'){
+        ranked.by <- 'Rank'
+    }
+    if (ranked.by == 'score'){
+        ranked.by <- 'Score'
+    }
+    if (! rank.by %in% c('Rank','Score','rank','score','p','P', 'p.val')){
+        stop('Invalid ranked.by argument. See man page for details.')
+    }
+    if (rank.by == 'rank'){
+        ranked.by <- 'Rank'
+    }
+    else if (rank.by == 'score'){
+        ranked.by <- 'Score'
+    }
+    else if(rank.by %in% c('p', 'P')){
+        rank.by <- 'p.val'
+    }
+    # Create a reference copy of the ontology scores
+    real.go <- result$GO[,c('go_id', 'ave_rank', 'ave_score')]
+    # Prepare a counter for p-value
+    real.go$p.count <- 0
+    # Fetch all the genes with expression data and their rank/score
+    random.genes <- result$genes[,c('Score', 'Rank')]
+    # Add the annotated genes absent from the expression data with 0 score
+    # and max rank (just like in GO_analyse)
+    all.annotated.genes <- unique(result$mapping$gene_id)
+    NA.genes <- all.annotated.genes[
+        ! all.annotated.genes %in% rownames(random.genes)
+        ]
+    random.genes <- rbind(
+        random.genes,
+        data.frame(
+            row.names = NA.genes,
+            Score=rep(0, length(NA.genes)),
+            Rank=rep(nrow(random.genes)+1, length(NA.genes))))
+    # For each iteration
+    for(i in 1:N){
+        # Progress bar
+        progress.bar(x = i, max = N)
+        # Randomise the gene order using the latest shuffled copy,
+        # alternatively re-use the original copy every time?)
+        rownames(random.genes) <- sample(
+            x = rownames(random.genes),
+            size = nrow(random.genes),
+            replace = F) # replace = F is default, but let's be clear
+        # Merge the randomised genes with the table of ontologies
+        random.genes2GO <- merge(
+            x = random.genes, y = result[['mapping']],
+            by.x = 'row.names', by.y = 'gene_id',
+            all.y = T, sort = F)
+        # compute the new average rank/score
+        if(ranked.by == 'Rank'){
+            # Replace NAs (annotated genes without expression data)
+            # by max rank + 1
+            random.genes2GO$Rank[is.na(random.genes2GO$Rank)] <-
+                max(random.genes2GO$Rank, na.rm = T) + 1
+            # Calculate the randomised average rank
+            random.aveRank <- aggregate(
+                Rank ~ go_id, data = random.genes2GO, FUN = FUN.GO
+                )
+            # Combine the real and randomised results for comparison
+            # (ignore ontologies with 0 terms,
+            # these will be given p-value of 1 later)
+            compare.aveRanks <- merge(
+                x = real.go, y = random.aveRank,
+                by = 'go_id', sort = F,
+                all = F) # all=F is default, but let's be clear
+            # get the list of genes where random is better than real
+            worst.GO <- compare.aveRanks$go_id[
+                compare.aveRanks$Rank <= compare.aveRanks$ave_rank
+                ]
+            # for all the above, add 1 to the p.count
+            real.go$p.count[real.go$go_id %in% worst.GO] <-
+                real.go$p.count[real.go$go_id %in% worst.GO] + 1     
+        } else if(ranked.by == 'Score'){
+            # Replace NAs (annotated genes without expression data) by score 0
+            random.genes2GO$Score[is.na(random.genes2GO$Score)] <- 0
+            # Calculate the randomised average rank
+            random.aveScore <- aggregate(
+                Score ~ go_id, data = random.genes2GO, FUN = FUN.GO
+                )
+            # Combine the real and randomised results for comparison
+            # (ignore ontologies with 0 terms,
+            # these will be given p-value of 1 later)
+            compare.aveScore <- merge(
+                x = real.go, y = random.aveScore,
+                by = 'go_id', sort = F,
+                all = F) # all=F is default, but let's be clear
+            # get the list of ontologies where random is better than real
+            worst.GO <- compare.aveScore$go_id[
+                compare.aveScore$Score <= random.aveScore$ave_score
+                ]
+            # for all the above, add 1 to the p.count
+            real.go$p.count[real.go$go_id %in% worst.GO] <-
+                real.go$p.count[real.go$go_id %in% worst.GO] + 1     
+        }
+    }
+    # Divide the total p.count by the number of iterations (1)
+    real.go$p.val <- real.go$p.count / N
+    # Keep only the go_id and p.val columns for merging with the GO table
+    real.go <- real.go[,c('go_id', 'p.val')]
+    # Merge the p.val column with the GO table of the GO_analyse output
+    GO.new <- merge(
+        x = result$GO, y = real.go,
+        by = 'go_id', all.x = T, sort = F)
+    # Set the p-value to 1 for ontologies not annotated with any gene
+    GO.new$p.val[!GO.new$go_id %in% unique(result$mapping$go_id)] <- 1
+    # reorder columns
+    GO.new <- GO.new[,c(
+        "go_id","ave_rank","ave_score","total_count","data_count","p.val",
+        "name_1006","namespace_1003")]
+    # Replace the GO table in the GO_analyse output
+    result$GO <- GO.new
+    # Use the rerank function to reorder according to user choice
+    result <- rerank(result=result, rank.by=rank.by)
+    # Add/update a slot in the GO_analyse output that states the number of
+    # iterations used to compute the p-value
+    result$p.iterations <- N
+    # return the update GO_analyse output
+    return(result)
+}
+
+quantiles_scores <- function(
+    result, probs=c(0.9, 0.95, 0.99, 0.999, 0.9999), quartiles=FALSE
+    ){
     # if the result provided does not contain the slots required for this
     # function
     if (! all(c("GO") %in% names(result))){
-        stop("\"result=\" argument misses required slots.
+        stop("'result=' argument misses required slots.
     Is it a GO_analyse() output?")
     }
     # If user changes to "quartiles=TRUE" then the following will be true
@@ -790,26 +1053,41 @@ quantiles_scores <- function(result, probs=c(0.9, 0.95, 0.99, 0.999, 0.9999),
     }
 }
 
-rerank <- function(result, rank.by="rank"){
+rerank <- function(result, rank.by = 'rank'){
     # if the result provided does not contain the slots required for this
     # function
     if (! all(c("GO","genes") %in% names(result))){
-        stop("\"result=\" argument misses required slots.
+        stop("'result=' argument misses required slots.
     Is it a GO_analyse() output?")
+    }
+    # If p-value filter was requested, check that the p.value step was indeed
+    # performed
+    if ('p.val' %in% rank.by){
+        if (! 'p.val' %in% colnames(result$GO)){
+            stop('"p.val" column absent from result$GO.
+    Is it a pValue_GO() output?')
+        }
     }
     # Reorder the GO and gene tables accordin to the user's choice
     if (rank.by == "rank"){
         result$GO <- result$GO[order(result$GO$ave_rank),]
         result$genes <- result$genes[order(result$genes$Rank),]
     }
-    else if (rank.by == "score") {
+    else if (rank.by == "score"){
         result$GO <- result$GO[order(result$GO$ave_score, decreasing=TRUE),]
-        result$genes <- result$genes[order(
-            result$genes$Score, decreasing=TRUE),]
+        result$genes <- result$genes[
+            order(
+                result$genes$Score, decreasing=TRUE
+                ),
+            ]
+    } else if (rank.by == "p.val"){
+        result$GO <- result$GO[order(result$GO$p.val),]
     }
     else{
         stop("Invalid ranking method: ", rank.by)
     }
+    # update the rank.by slot
+    result$rank.by <- rank.by
     return(result)
 }
 
@@ -817,7 +1095,7 @@ subEset <- function(eSet, subset=list()){
     # subset should be a list of factor names with the associated values
     # to retain for that factor
     if (!class(subset) == "list"){
-        stop("\"subset=\" argument should be a list.")
+        stop("'subset=' argument should be a list.")
     }
     if (length(subset) > 0){
         for (f_filter in names(subset)){
@@ -827,14 +1105,17 @@ subEset <- function(eSet, subset=list()){
                 stop(f_filter, " is not a valid column in pData(eSet).")
             }
             if (length(subset[[f_filter]]) == 0){
-                stop("Fo value provided for filter ", f_filter)
+                stop("No value provided for filter ", f_filter)
             }
             for (v_filter in subset[[f_filter]]){
                 # Check that the value is an existing value 
                 # in the phenodata
                 if(!v_filter %in% pData(eSet)[,f_filter]){
-                    stop(v_filter,
-                        " is not a valid value of eSet$", f_filter)
+                    stop(
+                        v_filter,
+                        " is not a valid value of eSet$",
+                        f_filter
+                        )
                 }
             }
             # at this stage, column and values exist
@@ -842,7 +1123,7 @@ subEset <- function(eSet, subset=list()){
             eSet <- eSet[,pData(eSet)[,f_filter] %in% subset[[f_filter]]]
             # Update the factor levels
             if ("factor" %in% class(pData(eSet)[,f_filter])){
-                pData(eSet)[,f_filter] = factor(pData(eSet)[,f_filter])
+                pData(eSet)[,f_filter] <- factor(pData(eSet)[,f_filter])
             }
         }
     }
@@ -855,59 +1136,145 @@ subEset <- function(eSet, subset=list()){
 subset_scores <- function(result, ...){
     # if the result provided does not contain the slots required for this
     # function
-    if (! all(c("GO", "mapping", "genes") %in% names(result))){
-        stop("\"result=\" argument misses required slots.
+    if (! all(c('GO', 'mapping', 'genes') %in% names(result))){
+        stop("'result=' argument misses required slots.
     Is it a GO_analyse() output?")
     }
     # Save the list of filter and value for easier referencing
     filters <- list(...)
+    # If p-value filter was requested, check that the p.value step was indeed
+    # performed
+    if ('p.val' %in% names(filters)){
+        if (! 'p.val' %in% colnames(result$GO)){
+            stop('"p.val" column absent from result$GO.
+    Is it a pValue_GO() output?')
+        }
+    }
+    # Deal with supported synonyms
+    names(filters) <- replace(
+        names(filters), names(filters) == 'data', 'data_count')
+    names(filters) <- replace(
+        names(filters), names(filters) == 'total', 'total_count')
+    names(filters) <- replace(
+        names(filters), names(filters) == 'rank', 'ave_rank')
+    names(filters) <- replace(
+        names(filters), names(filters) == 'score', 'ave_score')
+    names(filters) <- replace(
+        names(filters), names(filters) == 'namespace', 'namespace_1003')
+    names(filters) <- replace(
+        names(filters), names(filters) == 'P', 'p.val')
+    names(filters) <- replace(
+        names(filters), names(filters) == 'p', 'p.val')
+    # Create/update a "filter.GO" slot in the result object
+    if (is.null(result$filters.GO)){
+        result$filters.GO <- list()
+    }
     # prepares a table where the filtering results will be saved
     filtered <- data.frame(row.names=result$GO$go_id)
-    # For each filter
-    for (filter in names(list(...))){
+    # For each filter (careful about the direction of testing)
+    for (filter in names(filters)){
         # Save the filter status of each row for this filter
-        ## Filter on the total count of genes associated with the GO term
-        if (filter %in% c("total_count", "total")){
-            #cat(filter, "equal or more than", filters[[filter]], fill=TRUE)
-            filtered[,filter] <- result$GO[,"total_count"] >= filters[filter]
+        # Also: warn the user if applying conflicting filters to a previously
+        # filtered object
+        # All filters for superiror/equal values
+        if (filter %in% c('total_count', 'data_count', 'ave_score')){
+            # If the filter was not applied yet, add it
+            if (!filter %in% names(result$filters.GO)){
+                result$filters.GO[[filter]] <- filters[[filter]]
+            }
+            # If the filter was applied already on the result object
+            else{
+                # if the result object was already filtered for an
+                # equal or larger value
+                if (result$filters.GO[[filter]] >= filters[[filter]]){
+                    warning(
+                        'result object was already filter for an equal or ',
+                        'higher cutoff of filter ', filter, ': ',
+                        result$filters.GO[[filter]], '. Ignoring filter.'
+                        )
+                    next
+                }
+                # if filtering for a higher value than previously
+                else{
+                    # update the filter
+                    result$filters.GO[[filter]] <- filters[[filter]]
+                }
+            }
+            filtered[,filter] <- result$GO[,filter] >= filters[[filter]]
         }
-        ## Filter on the count of genes in the dataset associated with the GO
-        ## term
-        else if (filter %in% c("data_count", "data")){
-            #cat(filter, "equal or more than", filters[[filter]], fill=TRUE)
-            filtered[,filter] <- result$GO[,"data_count"] >= filters[filter]
-        }
-        ## Filters on the average rank of the genes associated to the GO term
-        else if (filter %in% c("ave_rank")){
-            #cat(filter, "equal or lower than", filters[[filter]], fill=TRUE)
-            filtered[,filter] <- result$GO[,filter] <= filters[filter]
-        }
-        ## Filters on the average score of the genes associated to the GO term
-        else if (filter %in% c("ave_score")){
-            #cat(filter, "equal or lower than", filters[[filter]], fill=TRUE)
-            filtered[,filter] <- result$GO[,filter] >= filters[filter]
+        # All filters for superiror/equal values
+        else if (filter %in% c('ave_rank', 'p.val')){
+            # If the filter was not applied yet, add it
+            if (!filter %in% names(result$filters.GO)){
+                result$filters.GO[[filter]] <- filters[[filter]]
+            }
+            # If the filter was applied already on the result object
+            else{
+                # if the result object was already filtered for an
+                # equal or lower value
+                if (result$filters.GO[[filter]] <= filters[[filter]]){
+                    warning(
+                        'result object was already filter for an equal or ',
+                        'lower cutoff of filter ', filter, ': ',
+                        result$filters.GO[[filter]], '. Ignoring filter.'
+                        )
+                    next
+                }
+                # if filtering for a lower value than previously
+                else{
+                    # update the filter
+                    result$filters.GO[[filter]] <- filters[[filter]]
+                }
+            }
+            filtered[,filter] <- result$GO[,filter] <= filters[[filter]]
         }
         ## Filters on the namespace of the GO term
-        else if (filter %in% c("namespace_1003", "namespace")){
-            #cat(filter, "equal to", filters[[filter]], fill=TRUE)
+        else if (filter == 'namespace_1003'){
+            # If the filter was not applied yet, add it
+            if (!filter %in% names(result$filters.GO)){
+                result$filters.GO[[filter]] <- filters[[filter]]
+            }
+            # If the filter was applied already on the result object
+            else{
+                # if filtering for the same ontology
+                if (result$filters.GO[[filter]] == filters[[filter]]){
+                    # ignore the 
+                    note(
+                        'result object was already filter for the same',
+                        'namespace.'
+                        )
+                    next
+                }
+                # if filtering for a different ontology:
+                # the new one is not present anyway
+                else{
+                    stop(
+                        'result object was already filter for a different ',
+                        'namespace: ', result$filters.GO[[filter]],
+                        '. No more data for namespace: ', filters[[filter]]
+                        )
+                }
+            }
             # GO namespace filtering should offer shortcuts
-            if (filters[filter] %in% c("biological_process", "BP")){
+            if (filters[[filter]] %in% c('biological_process', 'BP')){
                 filtered[,filter] <- result$GO$namespace_1003 ==
-                    "biological_process"
+                    'biological_process'
             }
-            else if (filters[filter] %in% c("molecular_function", "MF")){
+            else if (filters[[filter]] %in% c('molecular_function', 'MF')){
                 filtered[,filter] <- result$GO$namespace_1003 ==
-                    "molecular_function"
+                    'molecular_function'
             }
-            else if (filters[filter] %in% c("cellular_component", "CC")){
+            else if (filters[[filter]] %in% c('cellular_component', 'CC')){
                 filtered[,filter] <- result$GO$namespace_1003 ==
-                    "cellular_component"
+                    'cellular_component'
             }
             else{
-                stop("Valid values for filter ", filter, " are ",
-                        "\"biological_process\", \"BP\",",
-                        "\"molecular_function\", \"MF\",",
-                        "\"cellular_component\", and\"CC\".")
+                stop(
+                    "Valid values for filter ", filter, " are ",
+                    "'biological_process', 'BP',",
+                    "'molecular_function', 'MF',",
+                    "'cellular_component', and'CC'."
+                    )
             }
         }
         ## other filter names cause an error
@@ -924,26 +1291,28 @@ subset_scores <- function(result, ...){
     result$GO <- result$GO[filtered$merge,]
     ## Subset the gene/GO mapping to keep only the GO terms left in the score
     ## table
-    result$mapping <- result$mapping[result$mapping$go_id %in%
-                                            result$GO$go_id,]
+    result$mapping <- result$mapping[
+        result$mapping$go_id %in% result$GO$go_id,
+        ]
     ## Subset the anova table to keep only the genes annotated to the genes
     ## left in the mapping table
-    result$genes <- result$genes[rownames(result$genes) %in%
-                                    result$mapping$gene_id,]
+    result$genes <- result$genes[
+        rownames(result$genes) %in% result$mapping$gene_id,
+        ]
     return(result)
 }
 
-table_genes <- function(go_id, result, data.only=FALSE){
+table_genes <- function(go_id, result, data.only=FALSE, order.by='rank'){
     # if the result provided does not contain the slots required for this
     # function
     if (! all(c("mapping","genes") %in% names(result))){
-        stop("\"result=\" argument misses required slots.
+        stop("'result=' argument misses required slots.
     Is it a GO_analyse() output?")
     }
     # If the go_id requested is not present in the dataset
     if (!go_id %in% result$mapping$go_id){
         # return an error and stop
-        stop(go_id, "is not a valid go_id in the dataset.")
+        stop("go_id: ", go_id, " was not found in result$mapping$go_id.")
     }
     # Otherwise fetch the list of gene_ids associated with it
     gene_ids <- list_genes(go_id=go_id, result=result, data.only=data.only)
@@ -953,6 +1322,19 @@ table_genes <- function(go_id, result, data.only=FALSE){
     # Those do not have analysis results and therefore return NA
     # Leave NAs for the results, but put their name again as the row name
     rownames(res_table) <- gene_ids
+    # Sorting
+    if (order.by %in% c('rank', 'score')){
+        res_table <- res_table[order(res_table$Rank),]
+    }
+    else if (order.by == 'gene_id'){
+        res_table <- res_table[order(rownames(res_table)),]
+    }
+    else if (
+        order.by %in%
+            c('name', 'external_gene_name','external_gene_id')
+        ){
+        res_table <- res_table[order(res_table$external_gene_name),]
+    }
     # Return the information for all those genes
     return(res_table)
 }

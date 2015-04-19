@@ -142,8 +142,8 @@ that plotted on the X-axis. See below for an example on the training dataset.
 }
 
 \value{
-    The ggplot object, or NULL if multiple features are annotated
-    to the gene symbol.
+    The ggplot object, or the vector of feature identifiers if multiple
+    features are annotated to the gene symbol.
 }
 
 \references{
@@ -171,19 +171,19 @@ that plotted on the X-axis. See below for an example on the training dataset.
 # load the sample output data
 data(AlvMac_results)
 
-AlvMac$Series = paste(AlvMac$Animal, AlvMac$Treatment, sep="_")
+AlvMac$Series <- paste(AlvMac$Animal, AlvMac$Treatment, sep="_")
 
-expression_profiles_symbol(gene_symbol="TNIP3", result = AlvMac_results,
-        linetypeF="Animal", line.size=1.5,
-        eSet=AlvMac, seriesF="Series", x_var = "Timepoint",
-        title.size=1.5, legend.title.size=10, legend.text.size=10,
-        legend.key.size=30)
+expression_profiles_symbol(
+    gene_symbol="TNIP3", result = AlvMac_results,
+    eSet=AlvMac, seriesF="Series", x_var = "Timepoint", linetypeF="Animal",
+    line.size=1.5, title.size=1.5, legend.title.size=10, legend.text.size=10,
+    legend.key.size=30)
 
-expression_profiles_symbol(gene_symbol="TNIP3", result = AlvMac_results,
-        linetypeF="Animal", line.size=1.5, lty=rep(1,10),
-        eSet=AlvMac, seriesF="Series", x_var = "Timepoint",
-        title.size=1.5, legend.title.size=10, legend.text.size=10,
-        legend.key.size=30)
+expression_profiles_symbol(
+    gene_symbol="TNIP3", result = AlvMac_results,
+    eSet=AlvMac, seriesF="Series", x_var = "Timepoint", linetypeF="Animal",
+    line.size=1.5, lty=rep(1,10), title.size=1.5, legend.title.size=10,
+    legend.text.size=10, legend.key.size=30)
 }
 
 \keyword{ GOexpress }

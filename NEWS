@@ -1,7 +1,274 @@
-CHANGES IN VERSION 1.0.1
+CHANGES IN VERSION 1.1.12
 --------------------------
 
-BUG FIXES
+NEW FEATURES:
+
+    o Summarisation function of scores and rank from feature-level to
+    ontology-level also affects the calculation of P-values by pValue_GO. The
+    default behaviour is to use the same function as used in the call to
+    GO_analyse, stored in the result object.
+
+
+CHANGES IN VERSION 1.1.11
+--------------------------
+
+NEW FEATURES:
+
+    o Summarisation function of scores and rank from feature-level to
+    ontology-level can be overriden from the default "mean" to any function
+    specified by the user. The function need to support a list of numeric
+    values as an input, and return a unique numeric value as an output.
+
+
+CHANGES IN VERSION 1.1.10
+--------------------------
+
+BUG FIX:
+
+    o margins argument in heatmap_GO() was not used in the call to heatmap.2()
+
+
+CHANGES IN VERSION 1.1.9
+--------------------------
+
+TYPOS:
+
+    o Missing space character in error message.
+
+
+CHANGES IN VERSION 1.1.8
+--------------------------
+
+TYPOS:
+
+    o Simone Coughlan, not Simone Coughland. Apologies!
+
+CHANGES IN VERSION 1.1.7
+--------------------------
+
+BUG FIXES:
+
+    o Changed the rank of annotated features absent from the given
+    ExpressionSet to (number of features in ExpressionSet + 1) instead of
+    max(rank) + 1 to match the documentation, and desired behaviour. This
+    follows the logic of giving the same rank R to N tied-scored features,
+    while the next feature receives a rank of R + N.
+
+
+CHANGES IN VERSION 1.1.6
+--------------------------
+
+BUG FIXES:
+
+    o overlap_GO() was crashing for 3-group Venn diagrams, except if the
+    VennDiagram was loaded manually loaded in the workspace using 
+    libray(VennDiagram). The function will now run seemlessly without that
+    manual step, as loading GOexpress will immediately load VennDiagram
+    in the workspace (stated as a dependency in the DESCRIPTION file).
+
+NEW FEATURES:
+
+    o New function pValue_GO() allows calculation of P-value for each
+    ontology using permutation of genes labels. This allows users to estimate
+    the chance of seeing a GO term reach a particular rank (or score).
+    Features a fancy progres bar shamelessly adapted from StackOverflow.
+
+    o heatmap_GO now semi-autmoatically resizes the bottom and right margins
+    to accomodate large gene and sample labels, respectively. The user may
+    control those margins using the "margins" argument of the function.
+
+    o heatmap_GO default call now shows the gene feature identifier for those
+    missing an annotated gene name, when gene names are requested (also
+    the default).
+
+    o A rank.by slot is now created by the GO_analyse() function in the result
+    object to state the metric used to order the result tables.
+
+    o a filters.GO slot stating the filters and cutoffs applied to the result
+    object is now created or updated by successive uses of the subset_scores()
+    function. Warnings and notes are displayed if conflicting filters and
+    cutoffs are applied on a previously filtered result object.
+
+    o rerank() function now supports re-ordering by P-value. Note that this
+    is only applicable to the output of the pValue_GO() function mentioned
+    above.
+
+    o rerank() function now updates the rank.by slot of the result object
+    to state the current ordering metric.
+
+    o subset_scores() function now allows filtering by P-value. Note that this
+    is only applicable to the output of the pValue_GO() function mentioned
+    above.
+
+    o Backward compatibility with Ensembl annotation releases 75 and earlier,
+    which used 'external_gene_id', which was renamed to 'external_gene_name'
+    in releases 76 and later.
+
+    o table_genes() function defaults to sorting genes by decreasing score
+    (equivalent to increasing rank). Gene feature name or identifier are
+    supported alternative filters for sorting.
+
+
+UPDATED FEATURES:
+
+    o Allow user to override row_labels in heatmap_GO. This way, the 
+    color-coding of the sample can be kept, while better description of the
+    samples can be used to label them, instead of the phenodata values.
+
+    o In heatmap_GO(), if the labRow argument is of length 1, it is assumed to
+    be the name of a column in the phenoData slot. Useful to re-label
+    subsetted ExpressionSet objects.
+
+GENERAL UPDATES:
+
+    o Updated the AlvMac training dataset to include 'RPL36A' an example
+    of multiple Ensembl gene identifier annotated to the same gene name.
+
+    o Updated the AlvMac example custom annotations to match the updated
+    dataset.
+
+    o Updated the example AlvMac_results to match the updated dataset.
+
+    o Set the random seed prior to running the GO_analyse() example in 
+    the vignette. Hopefully, this should allow reproducible testing by the
+    users.
+
+    o In User Guide, load package before loading the attached data.
+
+    o In User Guide, new sections and examples dealing with the re-labelling
+    of heatmap samples, the use of P-values, the re-ranking and subsetting
+    of results using P-values. New sub-sections for clarity. Emphasis on
+    the use and generation of local annotation, rather than use of current
+    online Ensembl annotation release.
+
+    o No more code connecting to the Ensembl server in any the help files
+    and User Guide.
+
+    o Help pages examples with more consistent indentation of code.
+
+CHANGES IN VERSION 1.1.5
+--------------------------
+
+BUG FIXES:
+
+    o Forgot to commit image file of shiny screenshot in release 1.1.5
+
+CHANGES IN VERSION 1.1.4
+--------------------------
+
+NEW FEATURES:
+
+    o Custom annotations can be provided to the GO_analyse function using
+    three new arguments: "GO_genes", "all_GO", and "all_genes". See below for
+    individual description.
+
+    o The GO_genes argument allows the user to provide associations between
+    feature identifiers in the ExpressionSet and gene ontology identifiers.
+    This will skip all calls to the Ensembl BioMart server. Consequently, we
+    recommend the use of the "all_GO" and "all_genes" arguments whenever
+    "GO_genes" is used. Otherwise, some downstream functions may not work.
+    For instance, the expression_plot, expression_profiles, and heatmap_GO
+    function can be used to generate plots,although lacking gene and gene
+    ontology names. See below for more details.
+
+    o The all_GO argument allows the user to provide the name and namespace
+    ("biological_process", "molecular_function", or "cellular_component")
+    corresponding to gene ontology identifiers. This enables subsequent
+    filtering of result tables by namespace, and annotation of heatmaps with
+    the name of the gene ontology.
+
+    o The all_genes argument allows the user to provide the name and
+    description corresponding to feature identifiers in the ExpressionSet.
+    This enables annotation of expression plots with the gene name associated
+    with the feature.
+
+UPDATED FEATURES:
+
+    o In the GO_analyse function, the eSet argument is now formally checked
+    to be of class ExpressionSet prior to any calculation. If not, the
+    function returns an appropriate error message.
+
+    o The error messages caused when the user gives a name that does not exist
+    in the phenoData slot of the ExpressionSet were updated to use the word
+    "column", rather than "factor".
+
+GENERAL UPDATES:
+
+    o Updated the help page for function GO_analyse to describe the new 
+    features described above and provide a code example.
+
+    o Used the BiocStyle package to format the vignette.
+
+    o Added a new section in the vignette to document the new features
+    described above.
+
+    o Added a new section in the vignette to mention the creation of shiny
+    applications using the output of GOexpress. Included a screenshot of
+    a shiny application developed from the original AlvMac dataset.
+
+    o Added a new section in the vignette to highlight the availability of
+    a "subset" argument to avoid the need for additional ExpressionSet objects
+    to analyse or visualise subsets of samples.
+
+CHANGES IN VERSION 1.1.3
+--------------------------
+
+NEW FEATURES:
+
+    o Included private function used to generate the prefix2dataset table.
+
+    o Included private function used to generate the microarray2dataset table.
+
+    o GO_analyse states the number of gene features in the given dataset that
+    were found in the BioMart dataset. This allows the user to interrupt the
+    script if a suspiciously low number of mapped features suggests an
+    incorrect BioMart dataset was used.
+
+UPDATED FEATURES:
+
+    o Updated the prefix2dataset table. Three more species
+    ("Chlorocebus sabaeus", "Papio anubis" , and "Poecilia formosa"), and two
+    more columns ("species" and "sample").
+
+    o Updated the microarray2dataset table. Probeset patterns are now hard
+    coded in the package, but dynamically defined as unique to a platform
+    (or not) by the function building the microarray2dataset table. Species
+    without microarray platforms were also included in the table with NA
+    values. Code was added in the GO_analyse method to ignore those before
+    trying to resolve the origin of the expression data, if not specified
+    by the user.
+
+    o Renamed column "prefix" to "pattern" in microarray2dataset table.
+
+    o Disabled manual check of C. elegans and D. melanogaster, as the
+    automated detection is doing the exact same thing. Only S. cerevisiae
+    requires a manual check of the "Y" prefix instead of the automatically
+    extracted "Y[:LETTERS:]{2}" pattern.
+
+    o Methods expression_plot_symbol and expression_profiles_symbol now
+    return the list of gene feature identifiers instead of NULL when multiple
+    plots are produced. That may be confusing as they return the list of close
+    matches when an invalid gene symbol was given, and they return the ggplot
+    when obly one plot is produced.
+
+GENERAL UPDATES:
+
+    o Code layout. Lines of code over 80 characters were split around
+    brackets and commas to use the built-in indentation defaulted to 4 space
+    characters. Plus, this made the code more readable in many cases.
+
+CHANGES IN VERSION 1.1.2
+--------------------------
+
+GENERAL UPDATES:
+
+    o DESCRIPTION file minor correction: Inappropriate "Metagenomics"
+    biocView removed.
+
+CHANGES IN VERSION 1.1.1
+--------------------------
+
+BUG FIXES:
 
     o Ensembl BioMart has changed the column 'external_gene_id' to
     'external_gene_name'. Renamed my biomaRt queries accordingly to prevent
@@ -11,7 +278,7 @@ BUG FIXES
     with the deprecated 'external_gene_id'. It now includes the new
     'external_gene_name'.
 
-GENERAL UPDATES
+GENERAL UPDATES:
 
     o DESCRIPTION file minor correction.
 
@@ -189,7 +456,8 @@ CHANGES IN VERSION 0.99.6
 
 UPDATED FEATURES
 
-    o expression_profiles_symbol() method was missing the "index" argument to select the feature identifier to plot alone.
+    o expression_profiles_symbol() method was missing the "index" argument to
+    select the feature identifier to plot alone.
 
 
 CHANGES IN VERSION 0.99.5
